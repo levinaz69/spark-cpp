@@ -7,6 +7,7 @@ set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 
 # Options
 option(SPARK_BUILD_VIEWER "Build the viewer application" ON)
+option(SPARK_BUILD_EXAMPLES "Build example applications" ON)
 option(SPARK_BUILD_TESTS "Build tests" OFF)
 
 # --- Dependencies (managed by CPM) ---
@@ -76,5 +77,40 @@ if(SPARK_BUILD_VIEWER)
     target_link_libraries(spark_viewer PRIVATE
         spark_core
         glfw
+    )
+endif()
+
+# --- Examples ---
+if(SPARK_BUILD_EXAMPLES)
+    # Dear ImGui (via CPM)
+    CPMAddPackage(
+        NAME imgui
+        GITHUB_REPOSITORY ocornut/imgui
+        GIT_TAG v1.91.8
+        DOWNLOAD_ONLY YES
+    )
+    if(imgui_ADDED)
+        add_library(imgui STATIC
+            ${imgui_SOURCE_DIR}/imgui.cpp
+            ${imgui_SOURCE_DIR}/imgui_demo.cpp
+            ${imgui_SOURCE_DIR}/imgui_draw.cpp
+            ${imgui_SOURCE_DIR}/imgui_tables.cpp
+            ${imgui_SOURCE_DIR}/imgui_widgets.cpp
+            ${imgui_SOURCE_DIR}/backends/imgui_impl_glfw.cpp
+            ${imgui_SOURCE_DIR}/backends/imgui_impl_opengl3.cpp
+        )
+        target_include_directories(imgui PUBLIC
+            ${imgui_SOURCE_DIR}
+            ${imgui_SOURCE_DIR}/backends
+        )
+        target_link_libraries(imgui PUBLIC glfw glad OpenGL::GL)
+    endif()
+
+    # SOGS Example
+    add_executable(spark_sogs_example examples/sogs/main.cpp)
+    target_link_libraries(spark_sogs_example PRIVATE
+        spark_core
+        glfw
+        imgui
     )
 endif()
