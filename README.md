@@ -7,11 +7,22 @@ Replaces the original TypeScript/THREE.js viewer with native **OpenGL 4.3 + GLFW
 ## Features
 
 - **Gaussian Splatting rendering** via instanced quads with oriented 2D Gaussian projection
-- **File format support**: `.splat` (antimatter15), `.ply` (standard 3DGS), more formats planned
+- **File format support**: `.splat`, `.ply`, `.spz` (Niantic), `.ksplat`, `.rad` (Spark), `.sogs`/`.pcsogs` (ZIP)
 - **CPU radix sort** (16-bit and 32-bit) for back-to-front depth ordering
+- **LOD system**: LodTree (BFS traversal), QuickLod (scale-based hierarchy), TinyLod
 - **Camera controls**: WASD/arrows movement, right-click mouse look, scroll zoom
 - **Packed splat encoding**: 16 bytes per splat with half-float centers, octahedral quaternion encoding
 - **Ray-ellipsoid intersection** for picking
+- **SDF-based editing**: Sphere/Box/Cylinder/Plane region selection with delete/hide/tint/scale/move ops
+- **Skeletal animation**: Dual-quaternion bone deformation (SplatSkinning)
+- **Splat accumulation**: Weighted blending of multiple splat contributions
+- **Portal system**: Teleportation between scenes/locations
+- **LOD paging**: Distance-based streaming with page callbacks
+- **Extended precision**: Float32 GPU texture centers for large scenes
+- **SH clustering**: k-means++ spherical harmonics compression
+- **Dyno shader graph**: Dynamic GLSL code generation from node graphs
+- **GPU readback**: PBO-based async pixel/depth readback
+- **Procedural generators**: Grid, axes, sphere, snow, cube, ground plane
 
 ## Requirements
 
@@ -30,7 +41,8 @@ make -j$(nproc)
 ## Usage
 
 ```bash
-./spark_viewer <file.splat|file.ply> [options]
+./spark_viewer <file> [options]
+./spark_viewer --generate <type> [options]
 ```
 
 ### Options
@@ -41,6 +53,7 @@ make -j$(nproc)
 | `--height <int>` | Window height | 720 |
 | `--fov <float>` | Field of view (degrees) | 60 |
 | `--shader-dir <path>` | GLSL shader directory | auto-detect |
+| `--generate <type>` | Procedural: grid, axes, sphere, snow, cube, ground | — |
 
 ### Controls
 
@@ -58,14 +71,16 @@ make -j$(nproc)
 
 ```
 src/
-├── core/           # Core data structures (Gsplat, encoding, defines)
-├── formats/        # File format decoders (PLY, .splat)
+├── core/           # Core data structures (Gsplat, encoding, ExtSplats, SH clustering)
+├── formats/        # File format decoders (PLY, .splat, SPZ, KSPLAT, RAD, SOGS)
 ├── sort/           # Radix sort algorithms
+├── lod/            # LOD tree, QuickLod, TinyLod
 ├── raycast/        # Ray-ellipsoid intersection
-├── render/         # OpenGL rendering pipeline
-├── shader/         # GLSL shaders + shader manager
+├── render/         # OpenGL rendering pipeline, readback
+├── shader/         # GLSL shaders, shader manager, Dyno graph
 ├── controls/       # Camera controls (GLFW input)
-├── scene/          # Scene management (SplatLoader)
+├── scene/          # Scene management, SplatMesh, SplatEdit, SplatSkinning,
+│                   # SplatAccumulator, SplatPager, SparkPortals, generators
 └── viewer/         # Main application (GLFW window)
 ```
 
