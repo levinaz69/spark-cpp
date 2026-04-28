@@ -1,4 +1,4 @@
-cmake_minimum_required(VERSION 3.16)
+cmake_minimum_required(VERSION 3.14)
 project(spark-cpp VERSION 0.1.0 LANGUAGES C CXX)
 
 set(CMAKE_CXX_STANDARD 17)
@@ -9,34 +9,25 @@ set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 option(SPARK_BUILD_VIEWER "Build the viewer application" ON)
 option(SPARK_BUILD_TESTS "Build tests" OFF)
 
-# --- Dependencies ---
+# --- Dependencies (managed by CPM) ---
+include(cmake/CPM.cmake)
 
 # GLFW
-find_package(glfw3 3.3 QUIET)
-if(NOT glfw3_FOUND)
-    include(FetchContent)
-    FetchContent_Declare(
-        glfw
-        GIT_REPOSITORY https://github.com/glfw/glfw.git
-        GIT_TAG 3.4
-    )
-    set(GLFW_BUILD_DOCS OFF CACHE BOOL "" FORCE)
-    set(GLFW_BUILD_TESTS OFF CACHE BOOL "" FORCE)
-    set(GLFW_BUILD_EXAMPLES OFF CACHE BOOL "" FORCE)
-    FetchContent_MakeAvailable(glfw)
-endif()
+set(GLFW_BUILD_DOCS OFF CACHE BOOL "" FORCE)
+set(GLFW_BUILD_TESTS OFF CACHE BOOL "" FORCE)
+set(GLFW_BUILD_EXAMPLES OFF CACHE BOOL "" FORCE)
+CPMAddPackage(
+    NAME glfw
+    GITHUB_REPOSITORY glfw/glfw
+    GIT_TAG 3.4
+)
 
 # GLM
-find_package(glm QUIET)
-if(NOT glm_FOUND)
-    include(FetchContent)
-    FetchContent_Declare(
-        glm
-        GIT_REPOSITORY https://github.com/g-truc/glm.git
-        GIT_TAG 1.0.1
-    )
-    FetchContent_MakeAvailable(glm)
-endif()
+CPMAddPackage(
+    NAME glm
+    GITHUB_REPOSITORY g-truc/glm
+    GIT_TAG 1.0.1
+)
 
 # OpenGL
 find_package(OpenGL REQUIRED)
