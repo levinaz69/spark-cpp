@@ -19,6 +19,13 @@ public:
     const std::vector<uint32_t>& packed_array() const override { return packed_; }
     const SplatEncoding& encoding() const override { return encoding_; }
 
+    // LOD tree data (populated if RAD file contains child_count/child_start)
+    bool has_lod() const { return has_lod_; }
+    const std::vector<uint16_t>& lod_child_count() const { return gsplats_.child_count; }
+    const std::vector<uint32_t>& lod_child_start() const { return gsplats_.child_start; }
+    const GsplatArray& gsplat_array() const { return gsplats_; }
+    const std::vector<glm::vec3>& centers() const { return centers_; }
+
     static constexpr uint32_t RAD_MAGIC = 0x30444152;
     static constexpr uint32_t RAD_CHUNK_MAGIC = 0x43444152;
 
@@ -62,6 +69,9 @@ private:
     bool has_lod_ = false;
     SplatEncoding encoding_;
     GsplatArray gsplats_;
+
+    // Splat centers extracted during decode (needed for LOD)
+    std::vector<glm::vec3> centers_;
 };
 
 } // namespace spark

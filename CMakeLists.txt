@@ -118,4 +118,12 @@ if(SPARK_BUILD_EXAMPLES)
         glfw
         imgui
     )
+
+    # Streaming LoD Example
+    add_executable(spark_streaming_lod_example examples/streaming-lod/main.cpp)
+    target_link_libraries(spark_streaming_lod_example PRIVATE
+        spark_core
+        glfw
+        imgui
+    )
 endif()

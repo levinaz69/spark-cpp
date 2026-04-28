@@ -341,10 +341,12 @@ bool RadDecoder::parse_rad_meta() {
         offset = roundup8(offset);
     }
 
-    // Encode gsplats to packed format
+    // Encode gsplats to packed format and extract centers
+    centers_.resize(num_splats_);
     for (size_t i = 0; i < num_splats_; i++) {
         const auto& s = gsplats_.splats[i];
         glm::vec3 center = s.center;
+        centers_[i] = center;
         float opacity = half_to_float(s.opacity_h);
         glm::vec3 rgb(half_to_float(s.rgb_h[0]), half_to_float(s.rgb_h[1]), half_to_float(s.rgb_h[2]));
         glm::vec3 scale(std::exp(half_to_float(s.ln_scales_h[0])),
@@ -432,6 +434,14 @@ void RadDecoder::decode_chunk_properties(const uint8_t* payload, size_t payload_
                     s.quaternion_h[1] = float_to_half(values[i*4+1]);
                     s.quaternion_h[2] = float_to_half(values[i*4+2]);
                     s.quaternion_h[3] = float_to_half(values[i*4+3]);
+                    break;
+                case PropName::ChildCount:
+                    gsplats_.prepare_children();
+                    gsplats_.child_count[idx] = static_cast<uint16_t>(values[i]);
+                    break;
+                case PropName::ChildStart:
+                    gsplats_.prepare_children();
+                    gsplats_.child_start[idx] = static_cast<uint32_t>(values[i]);
                     break;
                 default:
                     break;
