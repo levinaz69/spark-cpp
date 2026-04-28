@@ -73,7 +73,7 @@ vec3 quatVec(vec4 q, vec3 v) {
 }
 
 // Unpack splat from packed encoding
-void unpackSplatEncoding(uvec4 packed, out vec3 center, out vec3 scales,
+void unpackSplatEncoding(uvec4 splatData, out vec3 center, out vec3 scales,
                           out vec4 quaternion, out vec4 rgba,
                           vec4 encodingParams) {
     float rgbMin = encodingParams.x;
@@ -82,26 +82,26 @@ void unpackSplatEncoding(uvec4 packed, out vec3 center, out vec3 scales,
     float lnScaleMax = encodingParams.w;
 
     // RGBA
-    rgba.r = mix(rgbMin, rgbMax, float(packed.x & 0xFFu) / 255.0);
-    rgba.g = mix(rgbMin, rgbMax, float((packed.x >> 8u) & 0xFFu) / 255.0);
-    rgba.b = mix(rgbMin, rgbMax, float((packed.x >> 16u) & 0xFFu) / 255.0);
-    rgba.a = float((packed.x >> 24u) & 0xFFu) / 255.0;
+    rgba.r = mix(rgbMin, rgbMax, float(splatData.x & 0xFFu) / 255.0);
+    rgba.g = mix(rgbMin, rgbMax, float((splatData.x >> 8u) & 0xFFu) / 255.0);
+    rgba.b = mix(rgbMin, rgbMax, float((splatData.x >> 16u) & 0xFFu) / 255.0);
+    rgba.a = float((splatData.x >> 24u) & 0xFFu) / 255.0;
 
     // Center (float16)
-    center.x = unpackHalf2x16(packed.y).x;
-    center.y = unpackHalf2x16(packed.y).y;
-    center.z = unpackHalf2x16(packed.z).x;
+    center.x = unpackHalf2x16(splatData.y).x;
+    center.y = unpackHalf2x16(splatData.y).y;
+    center.z = unpackHalf2x16(splatData.z).x;
 
     // Quaternion (octahedral 8+8+8)
-    uint quatEncoded = ((packed.z >> 16u) & 0xFFu)
-                     | (((packed.z >> 24u) & 0xFFu) << 8u)
-                     | (((packed.w >> 24u) & 0xFFu) << 16u);
+    uint quatEncoded = ((splatData.z >> 16u) & 0xFFu)
+                     | (((splatData.z >> 24u) & 0xFFu) << 8u)
+                     | (((splatData.w >> 24u) & 0xFFu) << 16u);
     quaternion = decodeQuatOctXy88R8(quatEncoded);
 
     // Scales
-    float s0 = float(packed.w & 0xFFu);
-    float s1 = float((packed.w >> 8u) & 0xFFu);
-    float s2 = float((packed.w >> 16u) & 0xFFu);
+    float s0 = float(splatData.w & 0xFFu);
+    float s1 = float((splatData.w >> 8u) & 0xFFu);
+    float s2 = float((splatData.w >> 16u) & 0xFFu);
 
     scales.x = (s0 == 0.0) ? 0.0 : exp(mix(lnScaleMin, lnScaleMax, (s0 - 1.0) / 254.0));
     scales.y = (s1 == 0.0) ? 0.0 : exp(mix(lnScaleMin, lnScaleMax, (s1 - 1.0) / 254.0));

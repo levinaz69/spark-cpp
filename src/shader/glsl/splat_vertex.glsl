@@ -45,11 +45,11 @@ void main() {
 
     // Read packed splat data
     ivec3 texCoord = splatTexCoord(int(splatIndex));
-    uvec4 packed = texelFetch(splatTexture, texCoord, 0);
+    uvec4 splatData = texelFetch(splatTexture, texCoord, 0);
 
     vec3 center, scales;
     vec4 quaternion, rgba;
-    unpackSplatEncoding(packed, center, scales, quaternion, rgba,
+    unpackSplatEncoding(splatData, center, scales, quaternion, rgba,
                         vec4(0.0, 1.0, LN_SCALE_MIN, LN_SCALE_MAX));
 
     if (all(equal(scales, vec3(0.0)))) return;
