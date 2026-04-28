@@ -11,6 +11,7 @@
 #include "render/spark_renderer.h"
 #include "controls/spark_controls.h"
 #include "scene/splat_loader.h"
+#include "scene/splat_generator.h"
 
 static int g_width = 1280;
 static int g_height = 720;
@@ -22,13 +23,15 @@ static void framebuffer_size_callback(GLFWwindow* window, int width, int height)
 }
 
 static void print_usage(const char* argv0) {
-    std::cout << "Usage: " << argv0 << " <splat_file> [options]\n"
-              << "\nSupported formats: .splat, .ply\n"
+    std::cout << "Usage: " << argv0 << " <splat_file|--generate TYPE> [options]\n"
+              << "\nSupported formats: .splat, .ply, .spz, .ksplat, .rad, .sogs\n"
               << "\nOptions:\n"
               << "  --width  <int>   Window width  (default: 1280)\n"
               << "  --height <int>   Window height (default: 720)\n"
               << "  --fov    <float> Field of view  (default: 60)\n"
               << "  --shader-dir <path> Shader directory\n"
+              << "  --generate <type> Generate procedural splats:\n"
+              << "     grid, axes, sphere, snow, cube, ground\n"
               << "\nControls:\n"
               << "  WASD / Arrow keys  Move camera\n"
               << "  Q / Space          Move up\n"
@@ -40,22 +43,25 @@ static void print_usage(const char* argv0) {
 }
 
 int main(int argc, char** argv) {
-    if (argc < 2) {
-        print_usage(argv[0]);
-        return 1;
-    }
-
-    std::string splat_file = argv[1];
+    std::string splat_file;
+    std::string generate_type;
     float fov = 60.0f;
     std::string shader_dir;
 
-    // Parse optional arguments
-    for (int i = 2; i < argc; i++) {
+    // Parse arguments
+    for (int i = 1; i < argc; i++) {
         std::string arg = argv[i];
         if (arg == "--width" && i + 1 < argc) g_width = std::stoi(argv[++i]);
         else if (arg == "--height" && i + 1 < argc) g_height = std::stoi(argv[++i]);
         else if (arg == "--fov" && i + 1 < argc) fov = std::stof(argv[++i]);
         else if (arg == "--shader-dir" && i + 1 < argc) shader_dir = argv[++i];
+        else if (arg == "--generate" && i + 1 < argc) generate_type = argv[++i];
+        else if (splat_file.empty() && arg[0] != '-') splat_file = arg;
+    }
+
+    if (splat_file.empty() && generate_type.empty()) {
+        print_usage(argv[0]);
+        return 1;
     }
 
     // Initialize GLFW
@@ -117,11 +123,36 @@ int main(int argc, char** argv) {
         return 1;
     }
 
-    // Load splats
-    std::cout << "Loading: " << splat_file << std::endl;
-    auto splats = spark::SplatLoader::load_file(splat_file);
+    // Load or generate splats
+    auto splats = std::make_unique<spark::PackedSplats>();
+
+    if (!generate_type.empty()) {
+        std::cout << "Generating: " << generate_type << std::endl;
+        std::vector<uint32_t> packed;
+        spark::SplatEncoding enc;
+
+        if (generate_type == "grid") spark::SplatGenerator::grid(packed, enc);
+        else if (generate_type == "axes") spark::SplatGenerator::axes(packed, enc);
+        else if (generate_type == "sphere") spark::SplatGenerator::sphere(packed, enc);
+        else if (generate_type == "snow") spark::SplatGenerator::snow(packed, enc);
+        else if (generate_type == "cube") spark::SplatGenerator::cube(packed, enc);
+        else if (generate_type == "ground") spark::SplatGenerator::ground_plane(packed, enc);
+        else {
+            std::cerr << "Unknown generator: " << generate_type << std::endl;
+            glfwTerminate();
+            return 1;
+        }
+
+        if (!packed.empty()) {
+            splats->set_data(packed.data(), packed.size() / 4, enc);
+        }
+    } else {
+        std::cout << "Loading: " << splat_file << std::endl;
+        splats = spark::SplatLoader::load_file(splat_file);
+    }
+
     if (!splats || splats->num_splats() == 0) {
-        std::cerr << "Failed to load splat file: " << splat_file << std::endl;
+        std::cerr << "Failed to load/generate splats" << std::endl;
         glfwTerminate();
         return 1;
     }

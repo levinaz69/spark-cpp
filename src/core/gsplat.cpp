@@ -148,4 +148,19 @@ void GsplatArray::prepare_children() {
     child_start.resize(splats.size(), 0);
 }
 
+void GsplatArray::ensure_sh(int degree) {
+    if (degree >= 1 && sh1.size() < splats.size()) {
+        sh1.resize(splats.size());
+        max_sh_degree = std::max(max_sh_degree, 1);
+    }
+    if (degree >= 2 && sh2.size() < splats.size()) {
+        sh2.resize(splats.size());
+        max_sh_degree = std::max(max_sh_degree, 2);
+    }
+    if (degree >= 3 && sh3.size() < splats.size()) {
+        sh3.resize(splats.size());
+        max_sh_degree = std::max(max_sh_degree, 3);
+    }
+}
+
 } // namespace spark

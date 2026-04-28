@@ -7,6 +7,7 @@
 #include <memory>
 #include <functional>
 #include "core/defines.h"
+#include "core/gsplat.h"
 
 namespace spark {
 
@@ -54,6 +55,17 @@ public:
     virtual void push(const uint8_t* data, size_t len) = 0;
     virtual void finish() = 0;
     virtual bool is_done() const = 0;
+};
+
+// Interface for format decoders that produce packed splat data
+class ChunkReceiver {
+public:
+    virtual ~ChunkReceiver() = default;
+    virtual void push(const uint8_t* data, size_t len) = 0;
+    virtual void finish() = 0;
+    virtual size_t num_splats() const = 0;
+    virtual const std::vector<uint32_t>& packed_array() const = 0;
+    virtual const SplatEncoding& encoding() const = 0;
 };
 
 // Auto-detect file type from magic bytes

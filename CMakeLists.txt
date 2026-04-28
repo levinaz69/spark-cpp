@@ -63,6 +63,7 @@ file(GLOB_RECURSE SPARK_CORE_SOURCES
     src/shader/*.cpp
     src/scene/*.cpp
     src/controls/*.cpp
+    src/lod/*.cpp
     src/utils/*.cpp
     src/constructors/*.cpp
 )

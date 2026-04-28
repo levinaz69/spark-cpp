@@ -2,6 +2,10 @@
 #include "formats/decoder.h"
 #include "formats/splat_decoder.h"
 #include "formats/ply_decoder.h"
+#include "formats/spz_decoder.h"
+#include "formats/ksplat_decoder.h"
+#include "formats/rad_decoder.h"
+#include "formats/sogs_decoder.h"
 #include <fstream>
 #include <iostream>
 
@@ -47,6 +51,51 @@ std::unique_ptr<PackedSplats> SplatLoader::load_bytes(
 
         case SplatFileType::PLY: {
             PlyDecoder decoder;
+            decoder.push(data, len);
+            decoder.finish();
+            if (decoder.num_splats() > 0) {
+                splats->set_data(decoder.packed_array().data(),
+                                decoder.num_splats(), decoder.encoding());
+            }
+            break;
+        }
+
+        case SplatFileType::SPZ: {
+            SpzDecoder decoder;
+            decoder.push(data, len);
+            decoder.finish();
+            if (decoder.num_splats() > 0) {
+                splats->set_data(decoder.packed_array().data(),
+                                decoder.num_splats(), decoder.encoding());
+            }
+            break;
+        }
+
+        case SplatFileType::KSPLAT: {
+            KsplatDecoder decoder;
+            decoder.push(data, len);
+            decoder.finish();
+            if (decoder.num_splats() > 0) {
+                splats->set_data(decoder.packed_array().data(),
+                                decoder.num_splats(), decoder.encoding());
+            }
+            break;
+        }
+
+        case SplatFileType::RAD: {
+            RadDecoder decoder;
+            decoder.push(data, len);
+            decoder.finish();
+            if (decoder.num_splats() > 0) {
+                splats->set_data(decoder.packed_array().data(),
+                                decoder.num_splats(), decoder.encoding());
+            }
+            break;
+        }
+
+        case SplatFileType::PCSOGS:
+        case SplatFileType::PCSOGSZIP: {
+            SogsDecoder decoder;
             decoder.push(data, len);
             decoder.finish();
             if (decoder.num_splats() > 0) {

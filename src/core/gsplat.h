@@ -79,6 +79,7 @@ public:
     void reserve(size_t count);
     void resize(size_t count);
     void prepare_children();
+    void ensure_sh(int degree);
 };
 
 } // namespace spark
