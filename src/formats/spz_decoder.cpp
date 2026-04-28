@@ -69,7 +69,7 @@ bool SpzDecoder::decompress_gzip() {
     if (pos >= compressed_.size()) return false;
 
     // Decompress using miniz raw inflate
-    size_t src_len = compressed_.size() - pos - 8; // exclude 8-byte gzip footer
+    mz_ulong src_len = static_cast<mz_ulong>(compressed_.size() - pos - 8); // exclude 8-byte gzip footer
     mz_ulong dest_len = static_cast<mz_ulong>(src_len * 8);
     decompressed_.resize(dest_len);
 
@@ -78,7 +78,7 @@ bool SpzDecoder::decompress_gzip() {
     if (status == MZ_BUF_ERROR) {
         dest_len = static_cast<mz_ulong>(src_len * 32);
         decompressed_.resize(dest_len);
-        src_len = compressed_.size() - pos - 8;
+        src_len = static_cast<mz_ulong>(compressed_.size() - pos - 8);
         status = mz_uncompress2(decompressed_.data(), &dest_len,
                                 &compressed_[pos], &src_len);
     }

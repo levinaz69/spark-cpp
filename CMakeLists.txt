@@ -14,17 +14,7 @@ option(SPARK_BUILD_TESTS "Build tests" OFF)
 set(CPM_SOURCE_CACHE "${CMAKE_CURRENT_SOURCE_DIR}/_deps" CACHE PATH "Directory for CPM source cache")
 include(cmake/CPM.cmake)
 
-# GLFW
-set(GLFW_BUILD_DOCS OFF CACHE BOOL "" FORCE)
-set(GLFW_BUILD_TESTS OFF CACHE BOOL "" FORCE)
-set(GLFW_BUILD_EXAMPLES OFF CACHE BOOL "" FORCE)
-CPMAddPackage(
-    NAME glfw
-    GITHUB_REPOSITORY glfw/glfw
-    GIT_TAG 3.4
-)
-
-# GLM
+# GLM (header-only math library, needed by core)
 CPMAddPackage(
     NAME glm
     GITHUB_REPOSITORY g-truc/glm
@@ -46,7 +36,7 @@ target_include_directories(stb INTERFACE third_party/stb)
 add_library(miniz STATIC third_party/miniz/miniz.c)
 target_include_directories(miniz PUBLIC third_party/miniz)
 
-# --- Spark Core Library ---
+# --- Spark Core Library (no GLFW/ImGui dependency) ---
 file(GLOB_RECURSE SPARK_CORE_SOURCES
     src/core/*.cpp
     src/formats/*.cpp
@@ -55,7 +45,6 @@ file(GLOB_RECURSE SPARK_CORE_SOURCES
     src/render/*.cpp
     src/shader/*.cpp
     src/scene/*.cpp
-    src/controls/*.cpp
     src/lod/*.cpp
     src/utils/*.cpp
     src/constructors/*.cpp
@@ -71,9 +60,25 @@ target_link_libraries(spark_core PUBLIC
     miniz
 )
 
+# --- Interactive targets (viewer, examples) need GLFW ---
+if(SPARK_BUILD_VIEWER OR SPARK_BUILD_EXAMPLES)
+    # GLFW (windowing, only for interactive targets)
+    set(GLFW_BUILD_DOCS OFF CACHE BOOL "" FORCE)
+    set(GLFW_BUILD_TESTS OFF CACHE BOOL "" FORCE)
+    set(GLFW_BUILD_EXAMPLES OFF CACHE BOOL "" FORCE)
+    CPMAddPackage(
+        NAME glfw
+        GITHUB_REPOSITORY glfw/glfw
+        GIT_TAG 3.4
+    )
+endif()
+
 # --- Viewer Application ---
 if(SPARK_BUILD_VIEWER)
-    add_executable(spark_viewer src/viewer/main.cpp)
+    add_executable(spark_viewer
+        src/viewer/main.cpp
+        src/controls/spark_controls.cpp
+    )
     target_link_libraries(spark_viewer PRIVATE
         spark_core
         glfw
