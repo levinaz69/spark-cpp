@@ -10,6 +10,7 @@ option(SPARK_BUILD_VIEWER "Build the viewer application" ON)
 option(SPARK_BUILD_TESTS "Build tests" OFF)
 
 # --- Dependencies (managed by CPM) ---
+set(CPM_SOURCE_CACHE "${CMAKE_CURRENT_SOURCE_DIR}/_deps" CACHE PATH "Directory for CPM source cache")
 include(cmake/CPM.cmake)
 
 # GLFW

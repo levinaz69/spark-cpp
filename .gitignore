@@ -1,3 +1,5 @@
+_deps/
+_build/
 build/
 cmake-build-*/
 .cache/
